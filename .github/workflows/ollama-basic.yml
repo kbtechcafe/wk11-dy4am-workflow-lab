@@ -53,6 +53,12 @@ jobs:
       run: |
         echo "Downloading Llama 3.2 1B model..."
         ollama pull llama3.2:1b
+    - name: Run modular test suite
+      id: modular-tests
+      run: |
+        echo "Running modular test suite..."
+        python scripts/test_runner.py
+      continue-on-error: true
     - name: Verify model availability
       run: |
         echo "Available models:"
@@ -64,6 +70,21 @@ jobs:
         RESPONSE=$(ollama run llama3.2:1b "Explain what DevOps means in one sentence, focusing on automation and collaboration.")
         echo "AI Response:"
         echo "$RESPONSE"
+    - name: Create timestamped result directory
+      run: |
+        python -c "
+        import sys
+        sys.path.append('.')
+        from utils.directory_manager import DirectoryManager
+    
+        dm = DirectoryManager('results')
+        result_dir = dm.create_timestamped_dir('run-${{ github.run_number }}')
+    
+        with open('current_result_dir.txt', 'w') as f:
+            f.write(str(result_dir))
+    
+        print(f'Created result directory: {result_dir}')
+        "
     - name: Advanced AI analysis
       run: |
         mkdir -p outputs
